@@ -85,7 +85,6 @@ sort PROC
 	;; include here the body of your routine
 	ldr r3, =size1
 	
-	
 	cmp r3, #1
 	beq return
 	mov r2,r1  ;s1=array
