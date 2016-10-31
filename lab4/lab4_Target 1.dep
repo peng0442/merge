@@ -1,0 +1,2 @@
+Dependencies for Project 'lab4', Target 'Target 1': (DO NOT MODIFY !)
+F (.\lab4.s)(0x5816F403)(--cpu Cortex-M3 --pd "__EVAL SETA 1" -g --apcs=interwork -IC:\Users\peng0\Desktop\lab4\RTE-ID:\Keil_v5\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include-ID:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.1.0\Device\Include--pd "__UVISION_VERSION SETA 521" --pd "_RTE_ SETA 1" --pd "STM32F10X_MD SETA 1"--list .\lab4.lst --xref -o .\lab4.o --depend .\lab4.d)

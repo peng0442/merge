@@ -1,0 +1,651 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;;
+    2 00000000         ;;; Project: Lab 4 - Sorting arrays of characters in asc
+                       ending 
+    3 00000000         ;;;          order using Merge sort algorithm
+    4 00000000         ;;; File: 
+    5 00000000         ;;; Class: lab4_sort.s
+    6 00000000         ;;; Date: 
+    7 00000000         ;;; Programmer: 
+    8 00000000         ;;; Description:
+    9 00000000         
+   10 00000000         
+   11 00000000         ; Directives
+   12 00000000                 PRESERVE8
+   13 00000000                 THUMB
+   14 00000000         
+   15 00000000         ;;; Equates
+   16 00000000 20001000 
+                       end_of_stack
+                               equ              0x20001000  ;Allocating 4kB of 
+                                                            memory for the stac
+                                                            k
+   17 00000000 20000000 
+                       RAM_START
+                               equ              0x20000000
+   18 00000000         
+   19 00000000         ; Vector Table Mapped to Address 0 at Reset, Linker requ
+                       ires __Vectors to be exported
+   20 00000000         
+   21 00000000                 AREA             RESET, DATA, READONLY
+   22 00000000                 EXPORT           __Vectors
+   23 00000000         ;The DCD directive allocates one or more words of memory
+                       , aligned on four-byte boundaries, 
+   24 00000000         ;and defines the initial runtime contents of the memory.
+                       
+   25 00000000         
+   26 00000000         
+   27 00000000         __Vectors
+   28 00000000 20002000        DCD              0x20002000  ; stack pointer val
+                                                            ue when stack is em
+                                                            pty
+   29 00000004 00000000        DCD              Reset_Handler ; reset vector
+   30 00000008         
+   31 00000008                 ALIGN
+   32 00000008         
+   33 00000008         ;My  program,  Linker requires Reset_Handler and it must
+                        be exported
+   34 00000008         
+   35 00000008                 AREA             MYCODE, CODE, READONLY
+   36 00000000                 ENTRY
+   37 00000000                 EXPORT           Reset_Handler
+   38 00000000         
+   39 00000000         
+   40 00000000         
+   41 00000000         
+   42 00000000         Reset_Handler
+                               PROC
+   43 00000000         ;; Copy the string of characters from flash to RAM buffe
+                       r so it 
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   44 00000000         ;; can be sorted  - Student to do  
+   45 00000000         
+   46 00000000         
+   47 00000000 F7FF FFFE       bl               byte_copy   ;Calling subroutine
+                                                             to sort the charac
+                                                            ters in the buffer
+   48 00000004         
+   49 00000004         
+   50 00000004 F7FF FFFE       bl               sort
+   51 00000008         
+   52 00000008         
+   53 00000008         
+   54 00000008         ;; we are finished
+   55 00000008 E7FE    done    b                done        ; finished mainline
+                                                             code.
+   56 0000000A                 ENDP
+   57 0000000A         
+   58 0000000A         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;;
+   59 0000000A         string1
+   60 0000000A 41 42 45 
+              46 5A 41 
+              43 44 47 
+              4C               dcb              "ABEFZACDGL"
+   61 00000014 0000000A 
+                       string1size
+                               equ              . - string1
+   62 00000014         
+   63 00000014                 align
+   64 00000014         size1
+   65 00000014 0000000A        dcd              string1size
+   66 00000018         
+   67 00000018         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;
+   68 00000018         ;;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;
+   69 00000018         ;;; Author:
+   70 00000018         ;;; Sort an array of characters in ascending order using
+                        the 
+   71 00000018         ;;; algorithm described in the lab handout
+   72 00000018         ;;; 
+   73 00000018         ;;; Require:
+   74 00000018         ;;; R1: ptr to buffer in RAM containing the input string
+                        (string_buffer)
+   75 00000018         ;;; R2: ptr to auxiliary buffer in RAM used by subroutin
+                       e "merge" (aux_buffer)
+   76 00000018         ;;; R3: size of the string (contained in [size1] )
+   77 00000018         ;;; 
+   78 00000018         ;;; Promise: Returns 1 in error register R10 if there wa
+                       s an error, else 
+   79 00000018         ;;; R10 is 0 and the buffer in RAM contains the sorted s
+                       tring of characters
+   80 00000018         ;;; Subroutine must not modify any other register.
+   81 00000018         ;;; 
+   82 00000018                 ALIGN
+   83 00000018         sort    PROC
+   84 00000018         
+   85 00000018         ;; include here the body of your routine
+   86 00000018 4B37            ldr              r3, =size1
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   87 0000001A         
+   88 0000001A 2B01            cmp              r3, #1
+   89 0000001C D0FE            beq              return
+   90 0000001E 460A            mov              r2,r1       ;s1=array
+   91 00000020 F04F 0702       mov              r7,#2
+   92 00000024 FBB3 F3F7       udiv             r3,r7
+   93 00000028 461D            mov              r5,r3       ;size of s1
+   94 0000002A         
+   95 0000002A F7FF FFFE       bl               sort
+   96 0000002E         
+   97 0000002E         
+   98 0000002E 4419            add              r1,r3
+   99 00000030 460E            mov              r6,r1
+  100 00000032 4634            mov              r4,r6
+  101 00000034         
+  102 00000034 4770            bx               lr
+  103 00000036 00 00           ALIGN
+  104 00000038         return  PROC
+  105 00000038 4609            mov              r1,r1
+  106 0000003A 4770            bx               lr
+  107 0000003C                 ENDP
+  108 0000003C         
+  109 0000003C         
+  110 0000003C         
+  111 0000003C         
+  112 0000003C         
+  113 0000003C                 ENDP
+  114 0000003C         
+  115 0000003C         
+  116 0000003C         
+  117 0000003C         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;;;;;
+  118 0000003C         ;;; copy an array of bytes from source ptr R1 to dest pt
+                       r R2.  R3
+  119 0000003C         ;;; contains the number of bytes to copy.
+  120 0000003C         ;;; Require:
+  121 0000003C         ;;; The destination had better be somewhere in RAM, but 
+                       that's the
+  122 0000003C         ;;; caller's responsibility.  As is the job to ensure th
+                       e source and 
+  123 0000003C         ;;; dest arrays don't overlap.
+  124 0000003C         ;;;
+  125 0000003C         ;;; Promise: No registers are modified.  The destination
+                        buffer is
+  126 0000003C         ;;;          modified.
+  127 0000003C         ;;; Author: Prof. Karim Naqvi (Oct 2013)
+  128 0000003C                 ALIGN
+  129 0000003C         byte_copy
+                               PROC
+  130 0000003C B41E            push             {r1,r2,r3,r4}
+  131 0000003E F04F 031C       mov              r3, #0x1c
+  132 00000042 F04F 0500       mov              r5, #0
+  133 00000046         loop
+  134 00000046 780C            ldrb             r4, [r1]
+  135 00000048 7014            strb             r4, [r2]
+  136 0000004A         
+  137 0000004A F101 0101       add              r1,#1
+  138 0000004E F102 0201       add              r2,#1
+  139 00000052 F105 0501       add              r5,#1
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  140 00000056 42AB            cmp              r3,r5
+  141 00000058 D1F5            bne              loop
+  142 0000005A         
+  143 0000005A BC1E            pop              {r1,r2,r3,r4}
+  144 0000005C 4770            bx               lr
+  145 0000005E                 ENDP
+  146 0000005E         
+  147 0000005E         
+  148 0000005E         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                       ;;;;
+  149 0000005E         ;;; Author: Diego Castro (Nov 2013)
+  150 0000005E         ;;; Merges two sorted sublists (sublist1 and sublist2) t
+                       hat 
+  151 0000005E         ;;; contains the ASCII code of characters. Resulting arr
+                       ay 
+  152 0000005E         ;;; combines the characters of both sublists and it is s
+                       orted in ascending order
+  153 0000005E         ;;; The subroutine will overwrite the original contents 
+                       of both sublists
+  154 0000005E         ;;;
+  155 0000005E         ;;; Require: 
+  156 0000005E         ;;;  R1: pointer to an auxiliary buffer
+  157 0000005E         ;;;  R2: pointer to sublist1
+  158 0000005E         ;;;  R4: pointer to sublist2
+  159 0000005E         ;;;   R6: size of sublist2
+  160 0000005E         ;;;  R5: size of sublist1
+  161 0000005E         ;;; Promise: Sublist1 and sublist2 are adjacent buffers 
+                       in memory 
+  162 0000005E         ;;; (i.e. first memory address of sublist2 is located 
+  163 0000005E         ;;; right after last memory address of sublist1). Both s
+                       ublists will be overwritten  
+  164 0000005E         ;;; with the sorted array after merging. 
+  165 0000005E         ;;; If stack overflow occurs, it returns 1 in error regi
+                       ster R10 else r10 is zero. 
+  166 0000005E         ;;; Subroutine does not modify any other register.
+  167 0000005E         ;;; Example: 
+  168 0000005E         ;;;            sublist1  |  Sublist2
+  169 0000005E         ;;;                  degz|fht
+  170 0000005E         ;;;
+  171 0000005E         ;;;            sorted array
+  172 0000005E         ;;;                  defghtz
+  173 0000005E         ;;; Note: this function needs at least 9 words of free s
+                       pace in the stack
+  174 0000005E 00 00           ALIGN
+  175 00000060         merge   PROC
+  176 00000060         
+  177 00000060         ;;;checking if there is enough space in stack
+  178 00000060 F8DF A098       ldr              r10,=end_of_stack
+  179 00000064 EBBD 0A0A       subs             r10,sp,r10  ;R10 contains numbe
+                                                            r of bytes availabl
+                                                            e in stack   
+  180 00000068 F1BA 0F24       cmp              r10,#36     ;this subroutine re
+                                                            quires at least 9 w
+                                                            ords (36 bytes) of 
+                                                            free space in the s
+                                                            tack 
+  181 0000006C DC02            bgt              no_stack_overflow
+  182 0000006E F04F 0A01       mov              r10,#1      ;not enough space i
+                                                            n stack for this pr
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+                                                            ocedure
+  183 00000072 4770            bx               lr
+  184 00000074         
+  185 00000074         
+  186 00000074         no_stack_overflow
+  187 00000074 F04F 0A00       mov              r10,#0
+  188 00000078 B508            push             {r3,lr}
+  189 0000007A E92D 01F6       push             {r1,r2,r4,r5,r6,r7,r8}
+  190 0000007E         
+  191 0000007E         
+  192 0000007E B915    check   cbnz             r5,load_sub1 ;when r5 is 0, we 
+                                                            are done checking s
+                                                            ublist 1
+  193 00000080 F04F 078F       mov              r7,#0x8F    ;done with sublist 
+                                                            1, loading high val
+                                                            ue in R7
+  194 00000084 E004            b                load_sub2
+  195 00000086         load_sub1
+  196 00000086 7817            ldrb             r7,[r2]     ;R7 contains curren
+                                                            t ASCII code of cha
+                                                            racter in sublist1
+  197 00000088 B916            cbnz             r6,load_sub2
+  198 0000008A F04F 088F       mov              r8,#0x8F    ;done with sublist 
+                                                            2, loading high val
+                                                            ue in R8
+  199 0000008E E001            b                compare
+  200 00000090         load_sub2
+  201 00000090 F894 8000       ldrb             r8,[r4]     ;R8 contains curren
+                                                            t ASCII code of cha
+                                                            racter in sublist2
+  202 00000094         
+  203 00000094 4547    compare cmp              r7,r8
+  204 00000096 D113            bne              charac_diff
+  205 00000098 700F            strb             r7,[r1]     ;both characters ar
+                                                            e equal, we copy bo
+                                                            th to the aux buffe
+                                                            r;
+  206 0000009A F101 0101       add              r1,#1
+  207 0000009E F881 8000       strb             r8,[r1]
+  208 000000A2 F101 0101       add              r1,#1
+  209 000000A6         ;;;Updating indexes
+  210 000000A6 B115            cbz              r5,cont_sub2 ;index for sublist
+                                                             1 will be zero whe
+                                                            n we are done inspe
+                                                            cting that sublist
+  211 000000A8 3D01            subs             r5,#1
+  212 000000AA F102 0201       add              r2,#1
+  213 000000AE B116    cont_sub2
+                               cbz              r6,check_if_done ;index for sub
+                                                            list 2 will be zero
+                                                             when we are done i
+                                                            nspecting that subl
+                                                            ist
+  214 000000B0 3E01            subs             r6,#1
+  215 000000B2 F104 0401       add              r4,#1
+  216 000000B6         check_if_done
+  217 000000B6 42B5            cmp              r5,r6
+  218 000000B8 D1E1            bne              check
+  219 000000BA 2D00            cmp              r5,#0       ;both indexes are z
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+                                                            ero, then we are do
+                                                            ne
+  220 000000BC D014            beq              finish
+  221 000000BE E7DE            b                check
+  222 000000C0         
+  223 000000C0         charac_diff                          ;;;Only copy to aux
+                                                             buffer the charect
+                                                            er with smallest co
+                                                            de, update its corr
+                                                            esponding index 
+  224 000000C0 DC08            bgt              reverse_order
+  225 000000C2 700F            strb             r7,[r1]     ;character in subli
+                                                            st1 in less than th
+                                                            e code of character
+                                                             in sublist2
+  226 000000C4 F101 0101       add              r1,#1
+  227 000000C8 2D00            cmp              r5,#0
+  228 000000CA D0F4            beq              check_if_done ;index for sublis
+                                                            t 1 will be zero wh
+                                                            en we are done insp
+                                                            ecting that sublist
+                                                            
+  229 000000CC 3D01            subs             r5,#1
+  230 000000CE F102 0201       add              r2,#1
+  231 000000D2 E7F0            b                check_if_done
+  232 000000D4         reverse_order
+  233 000000D4 F881 8000       strb             r8,[r1]     ;character in subli
+                                                            st2 in less than ch
+                                                            aracter in sublist1
+                                                            .
+  234 000000D8 F101 0101       add              r1,#1
+  235 000000DC 2E00            cmp              r6,#0
+  236 000000DE D0EA            beq              check_if_done ;index for sublis
+                                                            t 1 will be zero wh
+                                                            en we are done insp
+                                                            ecting that sublist
+                                                            
+  237 000000E0 3E01            subs             r6,#1
+  238 000000E2 F104 0401       add              r4,#1
+  239 000000E6 E7E6            b                check_if_done
+  240 000000E8         
+  241 000000E8 E8BD 01F6 
+                       finish  pop              {r1,r2,r4,r5,r6,r7,r8}
+  242 000000EC         ;r1 contains now the memory address of source buffer ...
+                        in this case aux_buffer
+  243 000000EC         ;r2 constains now vthe memory address of destination buf
+                       fer ... in this case sublist1
+  244 000000EC EB05 0306       add              r3,r5,r6    ;size of sorted str
+                                                            ing is the addition
+                                                            g of the size of bo
+                                                            th sublists
+  245 000000F0         
+  246 000000F0 F7FF FFFE       bl               byte_copy   ;;;copy aux buffer 
+                                                            to input buffer 
+  247 000000F4         
+  248 000000F4 BD08            pop              {r3,pc}
+  249 000000F6                 ENDP
+  250 000000F6         
+  251 000000F6         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+                       ;;;;
+  252 000000F6         ;;; End of assembly file
+  253 000000F6 00 00           align
+  254 000000F8                 end
+              00000000 
+              20001000 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
+ork --depend=.\lab4.d -o.\lab4.o -IC:\Users\peng0\Desktop\lab4\RTE -ID:\Keil_v5
+\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include -ID:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DF
+P\2.1.0\Device\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSI
+ON SETA 521" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --lis
+t=.\lab4.lst lab4.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+RESET 00000000
+
+Symbol: RESET
+   Definitions
+      At line 21 in file lab4.s
+   Uses
+      None
+Comment: RESET unused
+__Vectors 00000000
+
+Symbol: __Vectors
+   Definitions
+      At line 27 in file lab4.s
+   Uses
+      At line 22 in file lab4.s
+Comment: __Vectors used once
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+MYCODE 00000000
+
+Symbol: MYCODE
+   Definitions
+      At line 35 in file lab4.s
+   Uses
+      None
+Comment: MYCODE unused
+Reset_Handler 00000000
+
+Symbol: Reset_Handler
+   Definitions
+      At line 42 in file lab4.s
+   Uses
+      At line 29 in file lab4.s
+      At line 37 in file lab4.s
+
+byte_copy 0000003C
+
+Symbol: byte_copy
+   Definitions
+      At line 129 in file lab4.s
+   Uses
+      At line 47 in file lab4.s
+      At line 246 in file lab4.s
+
+charac_diff 000000C0
+
+Symbol: charac_diff
+   Definitions
+      At line 223 in file lab4.s
+   Uses
+      At line 204 in file lab4.s
+Comment: charac_diff used once
+check 0000007E
+
+Symbol: check
+   Definitions
+      At line 192 in file lab4.s
+   Uses
+      At line 218 in file lab4.s
+      At line 221 in file lab4.s
+
+check_if_done 000000B6
+
+Symbol: check_if_done
+   Definitions
+      At line 216 in file lab4.s
+   Uses
+      At line 213 in file lab4.s
+      At line 228 in file lab4.s
+      At line 231 in file lab4.s
+      At line 236 in file lab4.s
+      At line 239 in file lab4.s
+
+compare 00000094
+
+Symbol: compare
+   Definitions
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 203 in file lab4.s
+   Uses
+      At line 199 in file lab4.s
+Comment: compare used once
+cont_sub2 000000AE
+
+Symbol: cont_sub2
+   Definitions
+      At line 213 in file lab4.s
+   Uses
+      At line 210 in file lab4.s
+Comment: cont_sub2 used once
+done 00000008
+
+Symbol: done
+   Definitions
+      At line 55 in file lab4.s
+   Uses
+      At line 55 in file lab4.s
+Comment: done used once
+finish 000000E8
+
+Symbol: finish
+   Definitions
+      At line 241 in file lab4.s
+   Uses
+      At line 220 in file lab4.s
+Comment: finish used once
+load_sub1 00000086
+
+Symbol: load_sub1
+   Definitions
+      At line 195 in file lab4.s
+   Uses
+      At line 192 in file lab4.s
+Comment: load_sub1 used once
+load_sub2 00000090
+
+Symbol: load_sub2
+   Definitions
+      At line 200 in file lab4.s
+   Uses
+      At line 194 in file lab4.s
+      At line 197 in file lab4.s
+
+loop 00000046
+
+Symbol: loop
+   Definitions
+      At line 133 in file lab4.s
+   Uses
+      At line 141 in file lab4.s
+Comment: loop used once
+merge 00000060
+
+Symbol: merge
+   Definitions
+      At line 175 in file lab4.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+      None
+Comment: merge unused
+no_stack_overflow 00000074
+
+Symbol: no_stack_overflow
+   Definitions
+      At line 186 in file lab4.s
+   Uses
+      At line 181 in file lab4.s
+Comment: no_stack_overflow used once
+return 00000038
+
+Symbol: return
+   Definitions
+      At line 104 in file lab4.s
+   Uses
+      At line 89 in file lab4.s
+Comment: return used once
+reverse_order 000000D4
+
+Symbol: reverse_order
+   Definitions
+      At line 232 in file lab4.s
+   Uses
+      At line 224 in file lab4.s
+Comment: reverse_order used once
+size1 00000014
+
+Symbol: size1
+   Definitions
+      At line 64 in file lab4.s
+   Uses
+      At line 86 in file lab4.s
+Comment: size1 used once
+sort 00000018
+
+Symbol: sort
+   Definitions
+      At line 83 in file lab4.s
+   Uses
+      At line 50 in file lab4.s
+      At line 95 in file lab4.s
+
+string1 0000000A
+
+Symbol: string1
+   Definitions
+      At line 59 in file lab4.s
+   Uses
+      At line 61 in file lab4.s
+Comment: string1 used once
+20 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+RAM_START 20000000
+
+Symbol: RAM_START
+   Definitions
+      At line 17 in file lab4.s
+   Uses
+      None
+Comment: RAM_START unused
+end_of_stack 20001000
+
+Symbol: end_of_stack
+   Definitions
+      At line 16 in file lab4.s
+   Uses
+      At line 178 in file lab4.s
+Comment: end_of_stack used once
+string1size 0000000A
+
+Symbol: string1size
+   Definitions
+      At line 61 in file lab4.s
+   Uses
+      At line 65 in file lab4.s
+Comment: string1size used once
+3 symbols
+361 symbols in table
